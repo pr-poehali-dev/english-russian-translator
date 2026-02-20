@@ -22,7 +22,7 @@ export default function Index() {
     try {
       const langPair = dir === "en-ru" ? "en|ru" : "ru|en";
       const res = await fetch(
-        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}&de=allanwinst@gmail.com`
       );
       const data = await res.json();
       setOutput(data.responseData?.translatedText || "Ошибка перевода");
