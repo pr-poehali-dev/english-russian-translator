@@ -26,7 +26,7 @@ export default function Index() {
       );
       const data = await res.json();
       setOutput(data.responseData?.translatedText || "Ошибка перевода");
-    } catch {
+    } catch (_e) {
       setOutput("Ошибка сети. Попробуйте ещё раз.");
     } finally {
       setLoading(false);
