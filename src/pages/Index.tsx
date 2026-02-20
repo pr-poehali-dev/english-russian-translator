@@ -14,7 +14,10 @@ export default function Index() {
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
+  const [usage, setUsage] = useState<{ used: number; limit: number }>(() => {
+    const todayKey = `mymemory_used_${new Date().toISOString().slice(0, 10)}`;
+    return { used: parseInt(localStorage.getItem(todayKey) || "0"), limit: 50000 };
+  });
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const translate = useCallback(async (text: string, dir: Direction) => {
@@ -27,15 +30,11 @@ export default function Index() {
       );
       const data = await res.json();
       setOutput(data.responseData?.translatedText || "Ошибка перевода");
-      try {
-        const statsRes = await fetch(
-          `https://api.mymemory.translated.net/usage?key=allanwinst@gmail.com`
-        );
-        const stats = await statsRes.json();
-        if (stats.data) {
-          setUsage({ used: stats.data.used, limit: stats.data.quota_limit });
-        }
-      } catch (_e) { /* тихо игнорируем */ }
+      const todayKey = `mymemory_used_${new Date().toISOString().slice(0, 10)}`;
+      const prev = parseInt(localStorage.getItem(todayKey) || "0");
+      const newUsed = prev + text.length;
+      localStorage.setItem(todayKey, String(newUsed));
+      setUsage({ used: newUsed, limit: 50000 });
     } catch (_e) {
       setOutput("Ошибка сети. Попробуйте ещё раз.");
     } finally {
@@ -134,13 +133,9 @@ export default function Index() {
           </div>
 
           <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-            {usage ? (
-              <p className="text-xs text-gray-300">
-                {usage.used.toLocaleString()} / {usage.limit.toLocaleString()} симв. сегодня
-              </p>
-            ) : (
-              <span />
-            )}
+            <p className="text-xs text-gray-300">
+              {usage.used.toLocaleString("ru")} / {usage.limit.toLocaleString("ru")} симв. сегодня
+            </p>
             <p className="text-xs text-gray-300">Перевод происходит автоматически</p>
           </div>
         </div>
