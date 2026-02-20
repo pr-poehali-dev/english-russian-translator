@@ -3,11 +3,6 @@ import Icon from "@/components/ui/icon";
 
 type Direction = "en-ru" | "ru-en";
 
-const LABELS: Record<Direction, { from: string; to: string }> = {
-  "en-ru": { from: "English", to: "Русский" },
-  "ru-en": { from: "Русский", to: "English" },
-};
-
 export default function Index() {
   const [direction, setDirection] = useState<Direction>("en-ru");
   const [input, setInput] = useState("");
@@ -19,6 +14,9 @@ export default function Index() {
     return { used: parseInt(localStorage.getItem(todayKey) || "0"), limit: 50000 };
   });
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fromLang = direction === "en-ru" ? "English" : "Русский";
+  const toLang = direction === "en-ru" ? "Русский" : "English";
 
   const translate = useCallback(async (text: string, dir: Direction) => {
     if (!text.trim()) { setOutput(""); return; }
@@ -45,9 +43,7 @@ export default function Index() {
   useEffect(() => {
     const todayKey = `mymemory_used_${new Date().toISOString().slice(0, 10)}`;
     const onStorage = (e: StorageEvent) => {
-      if (e.key === todayKey) {
-        setUsage({ used: parseInt(e.newValue || "0"), limit: 50000 });
-      }
+      if (e.key === todayKey) setUsage({ used: parseInt(e.newValue || "0"), limit: 50000 });
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
@@ -73,85 +69,105 @@ export default function Index() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const labels = LABELS[direction];
-
   return (
-    <div className="min-h-screen bg-[#F9F9F9] flex flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-2xl">
+    <div className="min-h-screen bg-white flex flex-col">
 
-        <div className="mb-10 text-center">
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Переводчик</h1>
-          <p className="text-sm text-gray-400 mt-1">English ↔ Русский</p>
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h1 className="text-xl font-medium text-gray-800">Переводчик</h1>
+      </div>
+
+      {/* Language bar */}
+      <div className="flex items-center border-b border-gray-200 px-4">
+        {/* From lang */}
+        <div className="flex-1 flex items-center gap-1 py-1">
+          <button
+            className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${direction === "en-ru" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-800"}`}
+            onClick={() => { if (direction !== "en-ru") switchDirection(); }}
+          >
+            English
+          </button>
+          <button
+            className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${direction === "ru-en" ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-800"}`}
+            onClick={() => { if (direction !== "ru-en") switchDirection(); }}
+          >
+            Русский
+          </button>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Switch button */}
+        <button
+          onClick={switchDirection}
+          className="mx-3 p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-800 transition-all"
+          title="Поменять языки"
+        >
+          <Icon name="ArrowLeftRight" size={16} />
+        </button>
 
-          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-            <span className="text-xs font-medium text-gray-400 uppercase tracking-widest">{labels.from}</span>
-            <button
-              onClick={switchDirection}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100 transition-all duration-200 hover:text-gray-800"
-            >
-              <Icon name="ArrowLeftRight" size={13} />
-              Сменить
-            </button>
-            <span className="text-xs font-medium text-gray-400 uppercase tracking-widest">{labels.to}</span>
+        {/* To lang */}
+        <div className="flex-1 flex items-center gap-1 py-1">
+          <span className="px-3 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600">
+            {toLang}
+          </span>
+        </div>
+      </div>
+
+      {/* Panels */}
+      <div className="flex flex-1 divide-x divide-gray-200">
+
+        {/* Input panel */}
+        <div className="flex-1 flex flex-col min-h-[320px]">
+          <div className="relative flex-1">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Введите текст..."
+              className="w-full h-full min-h-[260px] resize-none px-6 pt-5 pb-16 text-2xl text-gray-800 placeholder-gray-300 font-light leading-snug focus:outline-none"
+            />
+            {input && (
+              <button
+                onClick={() => { setInput(""); setOutput(""); }}
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <Icon name="X" size={16} />
+              </button>
+            )}
           </div>
-
-          <div className="grid grid-cols-1 divide-y divide-gray-100 md:grid-cols-2 md:divide-y-0 md:divide-x">
-            <div className="relative">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Введите текст..."
-                rows={7}
-                className="w-full resize-none px-5 py-4 text-gray-800 placeholder-gray-300 text-base leading-relaxed focus:outline-none bg-transparent"
-              />
-              {input && (
-                <button
-                  onClick={() => { setInput(""); setOutput(""); }}
-                  className="absolute top-2 right-2 p-2 text-gray-300 hover:text-gray-500 transition-colors"
-                >
-                  <Icon name="X" size={14} />
-                </button>
-              )}
-            </div>
-
-            <div className="flex flex-col bg-gray-50/60 min-h-[196px]">
-              <div className="flex-1 w-full px-5 pt-4 pb-2 text-base leading-relaxed">
-                {loading ? (
-                  <div className="flex items-center gap-2 text-gray-300 pt-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "300ms" }} />
-                  </div>
-                ) : (
-                  <p className={`whitespace-pre-wrap ${output ? "text-gray-800" : "text-gray-300"}`}>{output || "Перевод появится здесь"}</p>
-                )}
-              </div>
-              {output && !loading && (
-                <div className="flex justify-end px-3 pb-3">
-                  <button
-                    onClick={copy}
-                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors px-2 py-1 rounded hover:bg-gray-200"
-                  >
-                    <Icon name={copied ? "Check" : "Copy"} size={13} />
-                    {copied ? "Скопировано" : "Копировать"}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
           <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-            <p className="text-xs text-gray-300">
+            <p className="text-xs text-gray-400">
               {usage.used.toLocaleString("ru")} / {usage.limit.toLocaleString("ru")} симв. сегодня
             </p>
-            <p className="text-xs text-gray-300">Перевод происходит автоматически</p>
+            <p className="text-xs text-gray-300">{input.length} симв.</p>
           </div>
         </div>
 
-        <p className="text-center text-xs text-gray-300 mt-6">MyMemory Translation API</p>
+        {/* Output panel */}
+        <div className="flex-1 flex flex-col bg-gray-50 min-h-[320px]">
+          <div className="flex-1 px-6 pt-5 pb-4 min-h-[260px]">
+            {loading ? (
+              <div className="flex items-center gap-2 pt-1">
+                <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+            ) : (
+              <p className={`whitespace-pre-wrap text-2xl font-light leading-snug ${output ? "text-gray-800" : "text-gray-300"}`}>
+                {output || "Перевод"}
+              </p>
+            )}
+          </div>
+          <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-end">
+            {output && !loading && (
+              <button
+                onClick={copy}
+                className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-700 transition-colors px-2 py-1.5 rounded hover:bg-gray-200"
+              >
+                <Icon name={copied ? "Check" : "Copy"} size={14} />
+                {copied ? "Скопировано" : "Копировать"}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
