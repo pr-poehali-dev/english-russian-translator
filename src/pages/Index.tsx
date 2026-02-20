@@ -1,14 +1,139 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useCallback } from "react";
+import Icon from "@/components/ui/icon";
 
-const Index = () => {
+type Direction = "en-ru" | "ru-en";
+
+const LABELS: Record<Direction, { from: string; to: string }> = {
+  "en-ru": { from: "English", to: "Русский" },
+  "ru-en": { from: "Русский", to: "English" },
+};
+
+export default function Index() {
+  const [direction, setDirection] = useState<Direction>("en-ru");
+  const [input, setInput] = useState("");
+  const [output, setOutput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const translate = useCallback(async () => {
+    if (!input.trim()) return;
+    setLoading(true);
+    setOutput("");
+    try {
+      const langPair = direction === "en-ru" ? "en|ru" : "ru|en";
+      const res = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(input)}&langpair=${langPair}`
+      );
+      const data = await res.json();
+      setOutput(data.responseData?.translatedText || "Ошибка перевода");
+    } catch {
+      setOutput("Ошибка сети. Попробуйте ещё раз.");
+    } finally {
+      setLoading(false);
+    }
+  }, [input, direction]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) translate();
+  };
+
+  const switchDirection = () => {
+    setDirection((d) => (d === "en-ru" ? "ru-en" : "en-ru"));
+    setInput(output);
+    setOutput(input);
+  };
+
+  const copy = async () => {
+    if (!output) return;
+    await navigator.clipboard.writeText(output);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const labels = LABELS[direction];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 color-black text-black">Добро пожаловать!</h1>
-        <p className="text-xl text-gray-600">тут будет отображаться ваш проект</p>
+    <div className="min-h-screen bg-[#F9F9F9] flex flex-col items-center justify-center px-4 py-12">
+      <div className="w-full max-w-2xl">
+
+        <div className="mb-10 text-center">
+          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Переводчик</h1>
+          <p className="text-sm text-gray-400 mt-1">English ↔ Русский</p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+            <span className="text-xs font-medium text-gray-400 uppercase tracking-widest">{labels.from}</span>
+            <button
+              onClick={switchDirection}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:bg-gray-100 transition-all duration-200 hover:text-gray-800"
+            >
+              <Icon name="ArrowLeftRight" size={13} />
+              Сменить
+            </button>
+            <span className="text-xs font-medium text-gray-400 uppercase tracking-widest">{labels.to}</span>
+          </div>
+
+          <div className="grid grid-cols-1 divide-y divide-gray-100 md:grid-cols-2 md:divide-y-0 md:divide-x">
+            <div className="relative">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Введите текст..."
+                rows={7}
+                className="w-full resize-none px-5 py-4 text-gray-800 placeholder-gray-300 text-base leading-relaxed focus:outline-none bg-transparent"
+              />
+              {input && (
+                <button
+                  onClick={() => { setInput(""); setOutput(""); }}
+                  className="absolute top-3 right-3 text-gray-300 hover:text-gray-500 transition-colors"
+                >
+                  <Icon name="X" size={14} />
+                </button>
+              )}
+            </div>
+
+            <div className="relative bg-gray-50/60">
+              <div className="w-full px-5 py-4 text-base leading-relaxed min-h-[196px]">
+                {loading ? (
+                  <div className="flex items-center gap-2 text-gray-300">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                ) : (
+                  <p className={output ? "text-gray-800" : "text-gray-300"}>{output || "Перевод появится здесь"}</p>
+                )}
+              </div>
+              {output && !loading && (
+                <button
+                  onClick={copy}
+                  className="absolute top-3 right-3 flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors px-2 py-1 rounded hover:bg-gray-200"
+                >
+                  <Icon name={copied ? "Check" : "Copy"} size={13} />
+                  {copied ? "Скопировано" : "Копировать"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
+            <p className="text-xs text-gray-300">Ctrl + Enter для перевода</p>
+            <button
+              onClick={translate}
+              disabled={!input.trim() || loading}
+              className="flex items-center gap-2 px-5 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
+            >
+              <Icon name="Languages" size={14} />
+              Перевести
+            </button>
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-gray-300 mt-6">MyMemory Translation API</p>
       </div>
     </div>
   );
-};
-
-export default Index;
+}
