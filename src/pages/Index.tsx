@@ -143,7 +143,15 @@ export default function Index() {
 
         {/* Output panel */}
         <div className="flex-1 flex flex-col bg-gray-50 min-h-[320px]">
-          <div className="flex-1 px-6 pt-5 pb-4 min-h-[260px]">
+          <div className="relative flex-1 px-6 pt-5 pb-4 min-h-[260px]">
+            {output && !loading && (
+              <button
+                onClick={copy}
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <Icon name={copied ? "Check" : "Copy"} size={16} />
+              </button>
+            )}
             {loading ? (
               <div className="flex items-center gap-2 pt-1">
                 <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -156,17 +164,7 @@ export default function Index() {
               </p>
             )}
           </div>
-          <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-end">
-            {output && !loading && (
-              <button
-                onClick={copy}
-                className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-700 transition-colors px-2 py-1.5 rounded hover:bg-gray-200"
-              >
-                <Icon name={copied ? "Check" : "Copy"} size={14} />
-                {copied ? "Скопировано" : "Копировать"}
-              </button>
-            )}
-          </div>
+          <div className="px-5 py-3 border-t border-gray-100" />
         </div>
       </div>
     </div>
