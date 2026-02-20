@@ -90,7 +90,7 @@ export default function Index() {
               {input && (
                 <button
                   onClick={() => { setInput(""); setOutput(""); }}
-                  className="absolute top-3 right-3 text-gray-300 hover:text-gray-500 transition-colors"
+                  className="absolute top-2 right-2 p-2 text-gray-300 hover:text-gray-500 transition-colors"
                 >
                   <Icon name="X" size={14} />
                 </button>
