@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 
 type Direction = "en-ru" | "ru-en";
@@ -14,15 +14,15 @@ export default function Index() {
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const translate = useCallback(async () => {
-    if (!input.trim()) return;
+  const translate = useCallback(async (text: string, dir: Direction) => {
+    if (!text.trim()) { setOutput(""); return; }
     setLoading(true);
-    setOutput("");
     try {
-      const langPair = direction === "en-ru" ? "en|ru" : "ru|en";
+      const langPair = dir === "en-ru" ? "en|ru" : "ru|en";
       const res = await fetch(
-        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(input)}&langpair=${langPair}`
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`
       );
       const data = await res.json();
       setOutput(data.responseData?.translatedText || "Ошибка перевода");
@@ -31,11 +31,14 @@ export default function Index() {
     } finally {
       setLoading(false);
     }
-  }, [input, direction]);
+  }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) translate();
-  };
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!input.trim()) { setOutput(""); return; }
+    debounceRef.current = setTimeout(() => translate(input, direction), 600);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [input, direction, translate]);
 
   const switchDirection = () => {
     setDirection((d) => (d === "en-ru" ? "ru-en" : "en-ru"));
@@ -80,7 +83,6 @@ export default function Index() {
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
                 placeholder="Введите текст..."
                 rows={7}
                 className="w-full resize-none px-5 py-4 text-gray-800 placeholder-gray-300 text-base leading-relaxed focus:outline-none bg-transparent"
@@ -119,16 +121,8 @@ export default function Index() {
             </div>
           </div>
 
-          <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-            <p className="text-xs text-gray-300">Ctrl + Enter для перевода</p>
-            <button
-              onClick={translate}
-              disabled={!input.trim() || loading}
-              className="flex items-center gap-2 px-5 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
-            >
-              <Icon name="Languages" size={14} />
-              Перевести
-            </button>
+          <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-end">
+            <p className="text-xs text-gray-300">Перевод происходит автоматически</p>
           </div>
         </div>
 
