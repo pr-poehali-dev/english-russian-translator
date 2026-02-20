@@ -14,6 +14,7 @@ export default function Index() {
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const translate = useCallback(async (text: string, dir: Direction) => {
@@ -26,6 +27,15 @@ export default function Index() {
       );
       const data = await res.json();
       setOutput(data.responseData?.translatedText || "Ошибка перевода");
+      try {
+        const statsRes = await fetch(
+          `https://api.mymemory.translated.net/usage?key=allanwinst@gmail.com`
+        );
+        const stats = await statsRes.json();
+        if (stats.data) {
+          setUsage({ used: stats.data.used, limit: stats.data.quota_limit });
+        }
+      } catch (_e) { /* тихо игнорируем */ }
     } catch (_e) {
       setOutput("Ошибка сети. Попробуйте ещё раз.");
     } finally {
@@ -123,7 +133,14 @@ export default function Index() {
             </div>
           </div>
 
-          <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-end">
+          <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
+            {usage ? (
+              <p className="text-xs text-gray-300">
+                {usage.used.toLocaleString()} / {usage.limit.toLocaleString()} симв. сегодня
+              </p>
+            ) : (
+              <span />
+            )}
             <p className="text-xs text-gray-300">Перевод происходит автоматически</p>
           </div>
         </div>
