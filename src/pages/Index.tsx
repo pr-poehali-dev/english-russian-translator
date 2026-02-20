@@ -36,7 +36,7 @@ export default function Index() {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!input.trim()) { setOutput(""); return; }
-    debounceRef.current = setTimeout(() => translate(input, direction), 600);
+    debounceRef.current = setTimeout(() => translate(input, direction), 350);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [input, direction, translate]);
 
