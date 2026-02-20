@@ -97,26 +97,28 @@ export default function Index() {
               )}
             </div>
 
-            <div className="relative bg-gray-50/60">
-              <div className="w-full px-5 py-4 text-base leading-relaxed min-h-[196px]">
+            <div className="flex flex-col bg-gray-50/60 min-h-[196px]">
+              <div className="flex-1 w-full px-5 pt-4 pb-2 text-base leading-relaxed">
                 {loading ? (
-                  <div className="flex items-center gap-2 text-gray-300">
+                  <div className="flex items-center gap-2 text-gray-300 pt-1">
                     <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "0ms" }} />
                     <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "150ms" }} />
                     <div className="w-1.5 h-1.5 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                 ) : (
-                  <p className={output ? "text-gray-800" : "text-gray-300"}>{output || "Перевод появится здесь"}</p>
+                  <p className={`whitespace-pre-wrap ${output ? "text-gray-800" : "text-gray-300"}`}>{output || "Перевод появится здесь"}</p>
                 )}
               </div>
               {output && !loading && (
-                <button
-                  onClick={copy}
-                  className="absolute top-3 right-3 flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors px-2 py-1 rounded hover:bg-gray-200"
-                >
-                  <Icon name={copied ? "Check" : "Copy"} size={13} />
-                  {copied ? "Скопировано" : "Копировать"}
-                </button>
+                <div className="flex justify-end px-3 pb-3">
+                  <button
+                    onClick={copy}
+                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors px-2 py-1 rounded hover:bg-gray-200"
+                  >
+                    <Icon name={copied ? "Check" : "Copy"} size={13} />
+                    {copied ? "Скопировано" : "Копировать"}
+                  </button>
+                </div>
               )}
             </div>
           </div>
