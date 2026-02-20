@@ -127,9 +127,9 @@ export default function Index() {
             {input && (
               <button
                 onClick={() => { setInput(""); setOutput(""); }}
-                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute top-1 right-1 p-3 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <Icon name="X" size={16} />
+                <Icon name="X" size={18} />
               </button>
             )}
           </div>
@@ -147,9 +147,9 @@ export default function Index() {
             {output && !loading && (
               <button
                 onClick={copy}
-                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute top-1 right-1 p-3 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <Icon name={copied ? "Check" : "Copy"} size={16} />
+                <Icon name={copied ? "Check" : "Copy"} size={18} />
               </button>
             )}
             {loading ? (
