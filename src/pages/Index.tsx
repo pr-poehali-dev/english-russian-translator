@@ -43,6 +43,17 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
+    const todayKey = `mymemory_used_${new Date().toISOString().slice(0, 10)}`;
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === todayKey) {
+        setUsage({ used: parseInt(e.newValue || "0"), limit: 50000 });
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!input.trim()) { setOutput(""); return; }
     debounceRef.current = setTimeout(() => translate(input, direction), 350);
